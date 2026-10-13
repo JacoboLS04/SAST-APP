@@ -95,10 +95,4 @@ escaneos son deterministas para la misma versión, árbol y conjunto de reglas.
 | `seguridad/reportes/informe_hallazgos.txt` · `.csv` | Listado de hallazgos |
 | `seguridad/reportes/informe.html` · `informe_sast.html` · `informe_reglas_custom.html` | Vistas para navegador |
 | `seguridad/docs/informe_final.md` | Resume por severidad (crítica, alta, media, baja) |
-
-## Notas
-
-- Los reportes se generan a partir de los JSON de resultados; los JSON crudos no se
-  modifican.
-- El análisis estático se complementa con revisión manual y con las reglas propias.
-  Los detalles metodológicos y las métricas están en `documentacion_optiplant.tex`.
+¿
