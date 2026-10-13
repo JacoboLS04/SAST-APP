@@ -1,0 +1,51 @@
+rules:
+  - id: opc-python-sql-construccion-manual
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Posible construcción manual de consulta SQL con datos concatenados/f-strings/format/string-interpolation.
+      Usar consultas parametrizadas (%s, ? o ORM) para evitar inyección SQL.
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021 - Injection"
+      category: security
+    patterns:
+      - pattern-either:
+          - pattern: $CUR.execute(f"...{...}...")
+          - pattern: $CUR.execute("..." % $V)
+          - pattern: $CUR.execute("..." + $X + "...")
+          - pattern: $CUR.execute($A + $B)
+          - pattern: $CUR.execute("...".format(...))
+          - pattern: $CUR.execute($VAR)
+      - pattern-not: $CUR.execute("...", ...)
+      - pattern-not: $CUR.execute($Q, $ARGS)
+      - metavariable-regex:
+          metavariable: $CUR
+          regex: .*cursor|.*conn.*cursor|.*db.*cursor
+
+  - id: opc-python-broken-access-control-idor
+    languages: [python]
+    severity: WARNING
+    message: >-
+      Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un
+      recurso con el identificador $ID recibido del cliente sin comprobar que pertenezca al
+      usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.
+    metadata:
+      cwe: "CWE-639"
+      owasp: "A01:2025 - Broken Access Control"
+      category: security
+    patterns:
+      - pattern-inside: |
+          @require_auth
+          def $FUNC(...):
+              ...
+      - pattern-either:
+          - pattern: query($SQL, ($ID,), ...)
+          - pattern: ejecutar($SQL, ($ID,), ...)
+      - metavariable-regex:
+          metavariable: $ID
+          regex: ^(ticket_id|user_id|adjunto_id|resource_id)$
+      - pattern-not-inside: |
+          @require_rol(...)
+          def $FUNC(...):
+              ...
