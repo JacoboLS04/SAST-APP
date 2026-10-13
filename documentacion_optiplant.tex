@@ -1,0 +1,780 @@
+% =====================================================================
+% Documentación técnica - Prueba técnica OptiPlant Consultores
+% Compilar con: pdflatex documentacion_optiplant.tex (dos pasadas)
+% Imágenes opcionales (si no existen, se muestra un recuadro):
+%   img/logo_optiplant.png, img/arquitectura.png
+% =====================================================================
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{naranja}{HTML}{E8650A}
+\setlist{itemsep=2pt,topsep=4pt}
+\setstretch{1.12}
+\captionsetup{font=small,labelfont=bf}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small OptiPlant Inventario --- Documentación técnica}
+\rhead{\small Luengas Suaza, Jacobo}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Atajos
+\newcommand{\f}[1]{\texttt{#1}}
+\newcommand{\figuraopcional}[3]{% archivo, ancho, texto alterno
+  \IfFileExists{#1}{\includegraphics[width=#2]{#1}}{%
+  \fbox{\parbox{#2}{\centering\vspace{2cm}\textit{#3}\vspace{2cm}}}}}
+
+% Encabezados de tabla
+\newcommand{\enc}[1]{\textbf{#1}}
+
+\begin{document}
+
+% ---------------------------- PORTADA --------------------------------
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+{\Large\bfseries DOCUMENTACIÓN TÉCNICA Y ARQUITECTURA\par}
+\vspace{0.4cm}
+{\large\bfseries Prueba técnica: Ingeniería de Ciberseguridad e Infraestructura\par}
+\vspace{0.2cm}
+{\normalsize Balanceo de carga con Docker, comparativa de distribuciones y análisis estático\par}
+\vspace{2.5cm}
+\figuraopcional{img/logo_optiplant.png}{0.8\textwidth}{Logo OptiPlant Consultores}
+\vfill
+{\bfseries Presentado por: Jacobo Luengas Suaza\par}
+\vspace{0.2cm}
+{\bfseries Correo: \href{mailto:jacobo.luengass@gmail.com}{\textcolor{blue}{jacobo.luengass@gmail.com}}\par}
+\vspace{0.2cm}
+{\bfseries GitHub: JacoboLS04\par}
+\vspace{0.2cm}
+{\bfseries Armenia, Quindío --- 2026\par}
+\vspace{1cm}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ---------------------------- INTRODUCCIÓN ---------------------------
+\section{Introducción}
+
+Este documento reúne la evidencia y la documentación de los procesos de ingeniería desarrollados para la prueba técnica «Ingeniero de Ciberseguridad», propuesta por OptiPlant Consultores. Presenta de forma estructurada la solución a las pruebas de concepto y aplicaciones planteadas en las dos áreas de interés evaluadas: \textbf{infraestructura} y \textbf{seguridad}.
+
+El contenido se organiza así:
+\begin{itemize}
+  \item \textbf{Infraestructura:} contenerización de la aplicación y balanceo de carga con Nginx y Docker Compose (sección~\ref{sec:infra}).
+  \item \textbf{Comparativa de distribuciones:} Debian 12.11 frente a Rocky Linux 9.8 (sección~\ref{sec:distros}).
+  \item \textbf{Seguridad:} análisis estático en tres fases (revisión manual, revisión con modelos de lenguaje y matriz de confusión) y comparación con Bandit (sección~\ref{sec:sast}).
+  \item \textbf{Seguridad:} análisis estático reproducible con Semgrep, packs estándar y regla propia para A01:2025 (sección~\ref{sec:semgrep}).
+\end{itemize}
+
+% ---------------------------- INFRAESTRUCTURA ------------------------
+\section{Infraestructura: balanceo de carga con Docker}\label{sec:infra}
+
+\subsection{Contenerización de la aplicación}
+
+La primera prueba consistió en contenerizar una aplicación con \textit{backend} en Python (Flask), \textit{frontend} en Angular y persistencia en SQLite. Se partió de la lectura completa del \f{README} de la «app vulnerable», de donde se extrajo la información necesaria para ejecutar cada entorno del \textit{stack}.
+
+Durante esta fase se detectó que faltaban archivos de configuración esenciales para compilar el \textit{frontend}, concretamente \f{angular.json} y \f{tsconfig.app.json}. El problema se resolvió con apoyo de un asistente de IA y, a continuación, se crearon los directorios base del entorno Docker.
+
+Se utilizó Docker Hub como fuente de imágenes base. A partir de la lectura del código se seleccionaron dependencias que permiten ejecutar la aplicación en cualquier máquina sin conflictos, atendiendo a la cadena de suministro. El \f{Dockerfile} documenta la construcción y ejecución de la imagen y se diseñó pensando en el rendimiento del despliegue: las instrucciones \f{COPY} se ordenan de modo que las capas que cambian con menos frecuencia (dependencias) se almacenen en caché y no se reconstruyan en cada \textit{build}. Además, se expone el puerto 5000, que es el que atenderán las réplicas.
+
+\subsection{Nginx como balanceador de carga}
+
+Se utiliza Nginx para distribuir las solicitudes HTTP entre dos instancias del \textit{backend} de OPC Tickets (\f{app1} y \f{app2}), desplegadas con Docker Compose. Esto centraliza el acceso a la aplicación y evita que el cliente conozca las direcciones internas de cada instancia.
+
+Nginx también actúa como \textbf{proxy inverso}: recibe las solicitudes, las reenvía al servidor correspondiente y devuelve la respuesta. Se eligió por su configuración sencilla, su buena integración con Docker y su capacidad de registrar solicitudes, lo que facilita las pruebas de infraestructura.
+
+\paragraph{Conceptos principales.}
+\begin{itemize}
+  \item \textbf{Round-robin:} algoritmo que reparte las solicitudes de forma sucesiva entre los servidores configurados. En condiciones normales alterna entre \f{app1} y \f{app2}.
+  \item \textbf{Upstream:} grupo de servidores al que Nginx reenvía las solicitudes, definido a partir de los servicios de Docker Compose.
+  \item \textbf{Worker:} proceso que gestiona las conexiones. Se usa un único \textit{worker} para simplificar la demostración; no es un requisito para aplicar \textit{round-robin}.
+\end{itemize}
+
+\paragraph{Consideraciones.} Esta implementación demuestra la distribución de solicitudes entre dos réplicas, pero por sí sola no garantiza alta disponibilidad. En producción serían necesarias comprobaciones de salud del \textit{backend} y mecanismos de recuperación ante fallos.
+
+En conclusión, Nginx ofrece un punto de entrada único, facilita la distribución de solicitudes y permite observar el comportamiento de las réplicas con una configuración sencilla, adecuada para el laboratorio.
+
+\subsection{Composición de Docker Compose}
+
+Docker Compose define los servicios necesarios para desplegar OPC Tickets: dos réplicas de la aplicación y un balanceador Nginx. Cada réplica ejecuta el \textit{frontend} Angular y la API Flask; Nginx reparte las solicitudes entre ambas mediante \textit{round-robin}.
+
+\paragraph{Servicios principales.}
+\begin{itemize}
+  \item \f{app1} y \f{app2}: instancias independientes que comparten imagen y configuración base (definida con \f{x-app-base}). Se declaran por separado para poder referenciarlas directamente desde Nginx sin necesidad de Docker Swarm.
+  \item \f{lb}: balanceador Nginx que centraliza el acceso y publica el puerto 8080 del anfitrión.
+\end{itemize}
+
+\paragraph{Uso de recursos.} Se establecen límites para impedir que un contenedor consuma recursos en exceso (son límites, no reservas):
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\enc{Servicio} & \enc{CPU máxima} & \enc{Memoria máxima} \\
+\midrule
+Réplica de la aplicación (\f{app1}, \f{app2}) & 0,5 & 256 MB \\
+Balanceador Nginx (\f{lb}) & 0,1 & 64 MB \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Volúmenes persistentes.} Cada réplica dispone de su propio volumen (\f{app-data-1} y \f{app-data-2}), montado en \f{/app/data}, donde se almacenan la base de datos SQLite, los adjuntos, las exportaciones y los registros. Se mantienen separados para evitar problemas de concurrencia al escribir sobre un mismo archivo SQLite. Como consecuencia, los datos generados en una réplica no están disponibles automáticamente en la otra; en producción sería necesaria una estrategia de almacenamiento compartido.
+
+\paragraph{Seguridad y disponibilidad.} Los contenedores se ejecutan sin privilegios de \textit{root}, eliminan las capacidades adicionales de Linux y aplican \f{no-new-privileges}. Los \textit{health checks} verifican que las aplicaciones y el balanceador respondan correctamente, aunque por sí solos no garantizan la recuperación automática ante fallos.
+
+En conjunto, esta configuración permite demostrar el despliegue de una aplicación replicada, la distribución de solicitudes y el uso controlado de recursos y almacenamiento persistente.
+
+\subsection{Diagrama de infraestructura}
+
+\begin{figure}[ht]
+\centering
+\figuraopcional{img/arquitectura.png}{\textwidth}{Diagrama de infraestructura (Docker, Nginx, VM Debian y VM Rocky Linux)}
+\caption{Arquitectura de la solución: usuario, Nginx, réplicas \f{opc-app1} y \f{opc-app2}, volúmenes SQLite y máquinas virtuales Debian y Rocky Linux.}
+\end{figure}
+
+% ---------------------------- DISTRIBUCIONES -------------------------
+\section{Hallazgos entre distribuciones (Debian 12.11 y Rocky Linux 9.8)}\label{sec:distros}
+
+Debian es una distribución comunitaria e independiente, basada en paquetes \f{.deb}, con uno de los catálogos de software más amplios del ecosistema y una gran variedad de arquitecturas soportadas. Rocky Linux es una reconstrucción binaria compatible con Red Hat Enterprise Linux (RHEL), basada en paquetes \f{.rpm} y orientada a entornos empresariales.
+
+Esta comparativa contrasta ambas distribuciones en cuanto a familia, versiones de componentes, arquitecturas, gestión de paquetes, firewall, seguridad, servicios, almacenamiento y contenedores.
+
+\subsection{Características generales}
+\begin{center}
+\begin{tabular}{p{4cm}p{4.8cm}p{5.5cm}}
+\toprule
+ & \enc{Debian 12.11} & \enc{Rocky Linux 9.8} \\
+\midrule
+Familia & Debian (\f{.deb}) & Red Hat / Enterprise Linux (\f{.rpm}) \\
+Kernel & 6.1.x (serie LTS) & 5.14.0-687.x.el9\_8 \\
+Arquitectura principal & amd64 & x86\_64 (v2) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Gestión de paquetes}
+\begin{center}
+\begin{tabular}{p{4cm}p{4.8cm}p{5.5cm}}
+\toprule
+ & \enc{Debian 12.11} & \enc{Rocky Linux 9.8} \\
+\midrule
+Formato & \f{.deb} & \f{.rpm} \\
+Bajo nivel & \f{dpkg} & \f{rpm} \\
+Alto nivel & \f{apt} & \f{dnf} \\
+Actualizar el sistema & \f{apt upgrade} & \f{dnf upgrade} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Firewall y red}
+\begin{center}
+\begin{tabular}{p{4cm}p{4.8cm}p{5.5cm}}
+\toprule
+ & \enc{Debian 12.11} & \enc{Rocky Linux 9.8} \\
+\midrule
+\f{ufw} & Disponible (\f{apt install ufw}) & No oficial \\
+\f{firewalld} & Disponible (\f{apt install firewalld}) & Nativo \\
+Servicios por defecto & N/A & \f{ssh}, \f{cockpit}, \f{dhcpv6-client} \\
+Gestión de red & \f{/etc/network/interfaces} & NetworkManager \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Seguridad}
+\begin{center}
+\begin{tabular}{p{3.3cm}p{5cm}p{6cm}}
+\toprule
+ & \enc{Debian 12.11} & \enc{Rocky Linux 9.8} \\
+\midrule
+MAC & AppArmor (activo por defecto) & SELinux \\
+Herramientas & \f{aa-status}, \f{aa-enforce}, \f{aa-complain} & \f{getenforce}, \f{setenforce}, \f{semanage}, \f{restorecon}, \f{ausearch -m avc} \\
+Políticas criptográficas & Configuración por aplicación & \textit{System-wide crypto policies} \\
+\textit{Secure Boot} & Soportado (\textit{shim} firmado por Debian) & Soportado (\textit{shim} firmado) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Servicios, almacenamiento y contenedores}
+\begin{center}
+\begin{tabular}{p{3.8cm}p{4.6cm}p{5.6cm}}
+\toprule
+ & \enc{Debian 12.11} & \enc{Rocky Linux 9.8} \\
+\midrule
+Init & \f{systemd} & \f{systemd} \\
+Sistema de archivos por defecto & ext4 & XFS \\
+Virtualización & KVM/libvirt & KVM/libvirt \\
+Registros & \f{journald} & \f{journald} \\
+Imágenes de contenedor & \f{debian:12}, \f{debian:12-slim} & \f{rockylinux:9}, \f{rockylinux:9-minimal} \\
+ZFS & \f{zfs-dkms} & Mediante OpenZFS externo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ---------------------------- ANÁLISIS ESTÁTICO ----------------------
+\section{Análisis estático de seguridad}\label{sec:sast}
+
+El análisis se realizó en tres fases: (1) revisión manual del código, (2) validación con modelos de lenguaje (LLM) y (3) construcción de matrices de confusión para medir la calidad de los hallazgos y compararlos con herramientas automáticas (Bandit y, de forma complementaria, Semgrep).
+
+\subsection{Fase 1: pruebas manuales (lectura de código)}
+
+Se hizo un sondeo inicial de cada componente de ambos directorios para obtener los primeros indicios de posibles vulnerabilidades, a partir de conocimientos básicos de programación. Posteriormente, con apoyo de modelos de IA, se precisaron las clases y líneas donde aparecen las incidencias, lo que permitió construir una matriz de confusión para descartar y categorizar correctamente cada hallazgo, complementando el análisis manual inicial.
+
+\subsubsection*{\textit{Backend}}
+\begin{center}
+\begin{tabular}{p{4cm}p{9cm}}
+\toprule
+\enc{Archivo} & \enc{Líneas y observación inicial} \\
+\midrule
+\f{auth.py} & 30 (inyección tratada) \\
+\f{auth.py} & 51--57 (respuesta con token) \\
+\f{auth.py} & 100 (consulta) \\
+\f{files.py} & 91--95 (listado de adjuntos y consulta) \\
+\f{decorators.py} & 12--17 (\textit{access token} y cabecera) \\
+\f{errors.py} & 20--36 (configuración de la BD posiblemente expuesta; OWASP A02) \\
+\f{security.py} & 41--51 y 94--108 (criptografía débil) \\
+\f{config.py} & 13 (clave secreta expuesta) \\
+\f{config.py} & 16--18 (JWT expuesto) \\
+\f{config.py} & 24--28 (servicio SMTP expuesto) \\
+\f{config.py} & 58 (redes expuestas, aunque sean locales) \\
+\f{config.py} & 61 (\f{ERP\_BASE\_URL}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{\textit{Frontend}}
+\begin{center}
+\begin{tabular}{p{5.5cm}p{7.5cm}}
+\toprule
+\enc{Archivo} & \enc{Líneas y observación inicial} \\
+\midrule
+\f{auth.guard.ts} & 6--18 (\f{/login}) \\
+\f{auth.service.ts} & 15--16 (\f{CLAVE\_TOKEN} y \f{CLAVE\_USER}) \\
+\f{token.interceptor.ts} & 21 (\f{/admin}) \\
+\f{admin-console.component.ts} & 4--19 (consola) \\
+\f{login.component.ts} & 33--42 (\f{auth.login}) \\
+\f{app.module.ts} & 1--22 (módulos y rutas) \\
+\f{environment.prod.ts} & Archivo completo (datos expuestos) \\
+\f{environment.ts} & Archivo completo (datos expuestos) \\
+\f{package.json} & Cadena de suministro \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Fase 2: validación con modelos de lenguaje (LLM)}
+
+Cada nota de la Fase~1 se contrastó con un LLM, que emitió un veredicto (\textit{Aprobado}, \textit{Parcial} o \textit{Descartado}) con su explicación. Las referencias \textit{H-xx} corresponden a hallazgos del informe de análisis estático.
+
+\subsubsection*{\textit{Backend}}
+\begin{small}
+\begin{longtable}{p{2.9cm}p{2.4cm}p{2.3cm}p{7.6cm}}
+\toprule
+\enc{Archivo y líneas} & \enc{Nota original} & \enc{Veredicto} & \enc{Explicación} \\
+\midrule
+\endfirsthead
+\toprule
+\enc{Archivo y líneas} & \enc{Nota original} & \enc{Veredicto} & \enc{Explicación} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\f{auth.py} 30 & Inyección tratada & Parcial & El SQL de la línea 33 usa parámetros (\f{?}), por lo que no hay SQLi. Sin embargo, las líneas 30--31 escriben la contraseña en texto plano en el registro. \\
+\f{auth.py} 51--57 & Respuesta con token & Parcial & Devolver el token en el JSON es el diseño normal de un \textit{Bearer}; no es hallazgo. Sí lo son \f{api\_key} en la respuesta (línea 57), la cookie de sesión sin \f{HttpOnly}/\f{Secure}/\f{SameSite} (línea 62) y el token de 30 días (\f{config.py}:18). \\
+\f{auth.py} 100 & Consulta & Descartado como SQLi & La consulta está parametrizada. Lo grave de \f{/recuperar} está en la línea 108: devuelve el código de reseteo en la respuesta. \\
+\f{files.py} 91--95 & Listado de adjuntos y consulta & Parcial & La consulta está parametrizada (no es SQLi), pero hay un IDOR: cualquier usuario autenticado lista los adjuntos de cualquier ticket y recibe la ruta absoluta del servidor. \\
+\f{decorators.py} 12--17 & \textit{Access token} y cabecera & Aprobado & Aceptar \f{access\_token} por \textit{query string} deja el token en registros y en la cabecera \textit{Referer}. El archivo contiene además dos fallos más graves no listados (líneas 27 y 38--44). \\
+\f{errors.py} 20--36 & Configuración de la BD posiblemente expuesta & Aprobado (corrige OWASP) & Cada error 500 devuelve \textit{traceback}, tipo de excepción, ruta de la BD y modo \textit{debug}. El mapeo correcto es A05:2021 \textit{Security Misconfiguration} (A02 corresponde a fallos criptográficos). \\
+\f{security.py} 41--51 & Criptografía débil & Aprobado & Líneas 41--44: código de reseteo generado con \f{random.seed(int(time.time()))}, predecible. Líneas 47--51: comparación de API key con \f{==} (no es de tiempo constante). \\
+\f{security.py} 94--108 & Criptografía débil & Aprobado & AES en modo ECB (bloques iguales producen cifrado igual), clave fija en \f{config.py}:21, relleno casero y sin autenticación. \\
+\f{config.py} 13 & Clave secreta expuesta & Aprobado (matiz) & Usa \f{os.environ.get}, pero el valor por defecto está en el repositorio. Severidad media y no alta, porque se mitiga definiendo \f{APP\_SECRET\_KEY}. \\
+\f{config.py} 16--18 & JWT expuesto & Aprobado (matiz) & El secreto está fijado en el código y duplicado en el \textit{frontend}. Hoy su impacto es bajo porque el \textit{backend} nunca verifica la firma (H-01) y \f{require\_auth\_estricto} no se usa en ningún \textit{endpoint}. La expiración de 43\,200 min (30 días) es excesiva. \\
+\f{config.py} 24--28 & SMTP expuesto & Aprobado (SMTP) / Informativo (AWS) & La contraseña SMTP (\f{Optiplant2024!}) coincide con la del usuario administrador sembrado en \f{db.py}:111. Las claves AWS de las líneas 27--28 son los valores de ejemplo de la documentación de AWS, no credenciales reales. \\
+\f{config.py} 58 & Redes expuestas & Descartado & El archivo tiene 55 líneas; probablemente se trata de \f{REDES\_CONFIABLES} (línea 52). Una lista de prefijos privados no es una vulnerabilidad. El riesgo real está en cómo se evalúa en \f{decorators.py}:112 (cabecera \f{X-Forwarded-For} falsificable) y hoy es latente porque \f{INTERNAL\_API\_ENABLED = False}. \\
+\f{config.py} 61 & \f{ERP\_BASE\_URL} & Descartado & Esa línea no existe; corresponde a \f{ERP\_BASE\_URL} (línea 55), una URL HTTPS pública que no es un secreto. \\
+\end{longtable}
+\end{small}
+
+\subsubsection*{\textit{Frontend}}
+\begin{small}
+\begin{longtable}{p{3.2cm}p{2.3cm}p{2.3cm}p{7.4cm}}
+\toprule
+\enc{Archivo y líneas} & \enc{Nota original} & \enc{Veredicto} & \enc{Explicación} \\
+\midrule
+\endfirsthead
+\toprule
+\enc{Archivo y líneas} & \enc{Nota original} & \enc{Veredicto} & \enc{Explicación} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\f{auth.guard.ts} 6--18 & \f{/login} & Aprobado & El \textit{guard} solo comprueba que exista un token en \f{localStorage}; es un control del lado del cliente. El comentario «el \textit{backend} valida cada request» es falso (ver H-01). Además, \f{/tickets} no tiene \textit{guard} y \f{/admin} no comprueba el rol. \\
+\f{auth.service.ts} 15--16 & \f{CLAVE\_TOKEN} y \f{CLAVE\_USER} & Aprobado & El token y el perfil completo (incluida \f{api\_key}) quedan en \f{localStorage} (líneas 28--29), legibles por cualquier XSS, y existe uno (H-20). \\
+\f{token.interceptor.ts} 21 & \f{/admin} & Aprobado, sube a Alta & Adjunta \f{X-Api-Key: environment.erpApiKey} a toda URL que contenga \f{/admin/} o \f{/erp/}. La clave viaja desde el navegador y se filtra a cualquier destino con esa subcadena. \\
+\f{admin-console.component.ts} 4--19 & Consola & Descartado & Esas líneas son estilos y campos del componente. El punto a vigilar está en las líneas 46--48 (\f{previewHtml()} concatena entrada en HTML), pero se enlaza con \f{[innerHTML]} sin \textit{bypass}, por lo que el sanitizador de Angular lo neutraliza. \\
+\f{login.component.ts} 33--42 & \f{auth.login} & Parcial & El XSS por \f{[innerHTML]="error"} (línea 15) lo frena el sanitizador de Angular: se descarta como XSS. Lo real: mensajes que distinguen «usuario no existe» de «contraseña incorrecta» (enumeración) y, sobre todo, la línea 16, que muestra las credenciales del administrador. \\
+\f{app.module.ts} 1--22 & Módulos y rutas & Descartado & Solo imports y declaraciones, sin lógica de seguridad. \\
+\f{environment.prod.ts} & Archivo completo & Aprobado & Verificado: \f{opc-internal-7f3d9a21} (\f{erpApiKey}) aparece en el \textit{bundle} público \f{main.*.js} tras \f{ng build}. \f{jwtSharedSecret} no llegó al \textit{bundle} (no se usa y se elimina al compilar), pero sigue en el repositorio. \f{mapsPublicKey} es una clave pública por diseño. \\
+\f{environment.ts} & Archivo completo & Aprobado & Mismos secretos que producción, con el comentario «los dejamos aquí para agilizar demos». \\
+\f{package.json} & Cadena de suministro & Aprobado & \f{npm audit}: 8 vulnerabilidades (4 altas, 4 moderadas) en \f{@angular/*} 15.2.0. Faltan \f{package-lock.json} y \f{angular.json}, por lo que la compilación no es reproducible. \\
+\end{longtable}
+\end{small}
+
+\subsubsection*{Hallazgos no contemplados en las pruebas manuales}
+
+\begin{small}
+\begin{longtable}{p{4.6cm}p{4cm}p{5.8cm}}
+\toprule
+\enc{Qué} & \enc{Dónde} & \enc{Por qué importa} \\
+\midrule
+\endfirsthead
+\toprule
+\enc{Qué} & \enc{Dónde} & \enc{Por qué importa} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+El \textit{backend} no verifica la firma del JWT & \f{security.py}:77, usado en \f{decorators.py}:27 & Cualquiera puede fabricar un token con \f{rol: admin}; todo lo «autenticado» pasa a ser anónimo en la práctica. \\
+\f{X-User-Id} autentica sin credenciales & \f{decorators.py}:38--44 & Enviar \f{X-User-Id: 1} otorga privilegios de administrador. \\
+\f{/recuperar} devuelve el código y \f{/reset} acepta \f{null} & \f{auth.py}:108 y 122 & Toma de cualquier cuenta sin conocer ningún dato. \\
+El registro acepta el rol en el cuerpo & \f{auth.py}:83--86 & Cualquiera puede registrarse como administrador. \\
+\f{pickle.loads} sobre entrada del usuario & \f{import\_service.py}:18 & Ejecución remota de código. \\
+Inyección de comandos, SSTI, \textit{path traversal} y SQLi & \f{admin.py}:68, \f{tickets.py}:142--150, \f{files.py}:21--52, entre otros & Detallados en la lista de falsos negativos (sección~\ref{sec:fn}). \\
+\end{longtable}
+\end{small}
+
+\subsection{Fase 3: matriz de confusión}
+
+\subsubsection{Definición de las celdas}
+\begin{itemize}
+  \item \textbf{VP (verdadero positivo):} se marcó como vulnerable y sí lo era.
+  \item \textbf{FP (falso positivo):} se marcó como vulnerable y no lo era.
+  \item \textbf{FN (falso negativo):} existía una vulnerabilidad real y no se marcó.
+  \item \textbf{VN (verdadero negativo):} no existía vulnerabilidad y no se marcó.
+\end{itemize}
+
+\subsubsection{Escenarios de evaluación}
+Cada hallazgo manual se evalúa bajo dos criterios:
+\begin{itemize}
+  \item \textbf{Escenario A (criterio flexible):} un veredicto \textit{Parcial} cuenta como acierto (VP), porque la observación señalaba una zona con un problema real aunque el diagnóstico exacto fuera distinto.
+  \item \textbf{Escenario B (criterio estricto):} un veredicto \textit{Parcial} cuenta como falso positivo (FP).
+\end{itemize}
+
+\subsubsection{Clasificación por hallazgo}
+
+\subsubsection*{\textit{Backend}}
+\begin{center}
+\begin{tabular}{p{4.2cm}p{2.8cm}cc}
+\toprule
+\enc{Archivo y líneas} & \enc{Veredicto} & \enc{Esc. A} & \enc{Esc. B} \\
+\midrule
+\f{auth.py} 30 & Parcial & VP & FP \\
+\f{auth.py} 51--57 & Parcial & VP & FP \\
+\f{auth.py} 100 & Descartado & FP & FP \\
+\f{files.py} 91--95 & Parcial & VP & FP \\
+\f{decorators.py} 12--17 & Aprobado & VP & VP \\
+\f{errors.py} 20--36 & Aprobado & VP & VP \\
+\f{security.py} 41--51 & Aprobado & VP & VP \\
+\f{security.py} 94--108 & Aprobado & VP & VP \\
+\f{config.py} 13 & Aprobado & VP & VP \\
+\f{config.py} 16--18 & Aprobado & VP & VP \\
+\f{config.py} 24--28 & Aprobado & VP & VP \\
+\f{config.py} 58 & Descartado & FP & FP \\
+\f{config.py} 61 & Descartado & FP & FP \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{\textit{Frontend}}
+\begin{center}
+\begin{tabular}{p{5.2cm}p{2.8cm}cc}
+\toprule
+\enc{Archivo} & \enc{Veredicto} & \enc{Esc. A} & \enc{Esc. B} \\
+\midrule
+\f{auth.guard.ts} & Aprobado & VP & VP \\
+\f{auth.service.ts} & Aprobado & VP & VP \\
+\f{token.interceptor.ts} & Aprobado & VP & VP \\
+\f{admin-console.component.ts} 4--19 & Descartado & FP & FP \\
+\f{login.component.ts} 33--42 & Parcial & VP & FP \\
+\f{app.module.ts} & Descartado & FP & FP \\
+\f{environment.prod.ts} & Aprobado & VP & VP \\
+\f{environment.ts} & Aprobado & VP & VP \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Falsos negativos (FN = 21): vulnerabilidades no detectadas}\label{sec:fn}
+
+\paragraph{Críticas (10).}
+\begin{itemize}
+  \item \textbf{JWT sin firma verificada} (\f{security.py}, \f{decorators.py}): permite falsificar tokens. CWE-347. \textit{Solución:} validar firma y algoritmo.
+  \item \textbf{Suplantación por \f{X-User-Id}} (\f{decorators.py}): permite suplantar administradores. CWE-290. \textit{Solución:} eliminar el mecanismo heredado.
+  \item \textbf{Asignación masiva de roles} (\f{auth.py}, \f{users.py}): permite registrarse como administrador. CWE-915. \textit{Solución:} fijar el rol y limitar los campos aceptados.
+  \item \textbf{Deserialización con \f{pickle}} (\f{import\_service.py}, \f{importar.py}): posible ejecución de código. CWE-502. \textit{Solución:} usar JSON validado.
+  \item \textbf{Inyección de comandos} (\f{admin.py}, \f{export\_service.py}): ejecución de comandos mediante entradas manipuladas. CWE-78. \textit{Solución:} evitar el \textit{shell} y validar entradas.
+  \item \textbf{SSTI en tickets} (\f{tickets.py}): ejecución de expresiones Jinja controladas por el usuario. CWE-1336. \textit{Solución:} usar plantillas constantes.
+  \item \textbf{\textit{Path traversal}} (\f{files.py}): lectura arbitraria de archivos sin autenticación. CWE-22. \textit{Solución:} validar rutas y exigir autenticación.
+  \item \textbf{SQLi en auditoría} (\f{utils/auditoria.py}): inyección SQL por valores concatenados. CWE-89. \textit{Solución:} consultas parametrizadas.
+  \item \textbf{SQLi en búsqueda de tickets} (\f{search\_service.py}, \f{tickets.py}): consulta manipulable sin autenticación. CWE-89. \textit{Solución:} parametrizar y exigir sesión.
+  \item \textbf{Modo \textit{debug} expuesto} (\f{config.py}, \f{app.py}): posible exposición del depurador. CWE-489. \textit{Solución:} desactivar \textit{debug} en producción.
+\end{itemize}
+
+\paragraph{Altas (5).}
+\begin{itemize}
+  \item \textbf{SQLi en \textit{endpoints} autenticados} (\f{users.py}, \f{reports.py}, \f{admin.py}, \f{tickets.py}): SQL construido por concatenación. CWE-89. \textit{Solución:} parametrizar valores y validar columnas.
+  \item \textbf{Subida insegura de archivos} (\f{files.py}, \f{users.py}): nombres sin sanitizar y permisos 777. CWE-22 y CWE-434. \textit{Solución:} validar nombres, extensiones y permisos.
+  \item \textbf{\textit{Zip Slip}} (\f{import\_service.py}): extracción fuera del directorio previsto. CWE-22. \textit{Solución:} validar rutas.
+  \item \textbf{Carga insegura de YAML} (\f{import\_service.py}): posible construcción de objetos arbitrarios. CWE-502. \textit{Solución:} usar \f{yaml.safe\_load}.
+  \item \textbf{XSS almacenado} (\f{safe-html.pipe.ts}, \f{ticket-detail.component.html}): HTML no confiable marcado como seguro. CWE-79. \textit{Solución:} sanitizar o mostrar como texto.
+\end{itemize}
+
+\paragraph{Medias (4).}
+\begin{itemize}
+  \item \textbf{Hash MD5 sin sal} (\f{security.py}): almacenamiento débil de contraseñas. CWE-328. \textit{Solución:} Argon2 o bcrypt.
+  \item \textbf{TLS sin verificación} (\f{notification\_service.py}): certificados no validados. CWE-295. \textit{Solución:} habilitar la verificación.
+  \item \textbf{CORS permisivo} (\f{app.py}, \f{config.py}): orígenes demasiado amplios. CWE-942. \textit{Solución:} definir orígenes permitidos.
+  \item \textbf{XSS reflejado} (\f{tickets.py}): entrada reflejada sin escapar. CWE-79. \textit{Solución:} escapar la salida.
+\end{itemize}
+
+\paragraph{Bajas (2).}
+\begin{itemize}
+  \item \textbf{\f{assert} para autorización} (\f{decorators.py}): control eliminable con optimizaciones. CWE-703. \textit{Solución:} usar comprobaciones explícitas.
+  \item \textbf{RegExp con entrada del usuario} (\f{highlight.directive.ts}): riesgo de ReDoS. CWE-1333. \textit{Solución:} escapar la expresión.
+\end{itemize}
+
+\subsubsection{Verdaderos negativos (VN = 5)}
+\begin{center}
+\begin{tabular}{p{2.8cm}p{4.2cm}p{6.6cm}}
+\toprule
+\enc{Ubicación} & \enc{Señal del LLM} & \enc{Justificación} \\
+\midrule
+\f{auth.py} 88 & SQL construido con cadenas & Columnas de lista fija; valores con \f{?}. \\
+\f{tickets.py} 35 & SQL construido con cadenas & Columna validada contra lista, \f{ASC}/\f{DESC} y enteros. \\
+\f{users.py} 67 & SQL construido con cadenas & Columnas de lista fija; valores con \f{?}. \\
+\f{security.py} 11 & Librería obsoleta & El paquete es \f{pycryptodome}, que se mantiene activamente. \\
+\f{tickets.py} 174 & Plantilla con datos & Plantilla constante; Jinja escapa por defecto. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Matrices de confusión}
+\begin{center}
+\begin{minipage}{0.46\textwidth}
+\centering
+\textbf{Escenario A}\par\vspace{4pt}
+\begin{tabular}{lcc}
+\toprule
+ & \enc{Vulnerable} & \enc{No vulnerable} \\
+\midrule
+\enc{Marcado} & VP = 16 & FP = 5 \\
+\enc{No marcado} & FN = 21 & VN = 5 \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}{0.46\textwidth}
+\centering
+\textbf{Escenario B}\par\vspace{4pt}
+\begin{tabular}{lcc}
+\toprule
+ & \enc{Vulnerable} & \enc{No vulnerable} \\
+\midrule
+\enc{Marcado} & VP = 12 & FP = 9 \\
+\enc{No marcado} & FN = 21 & VN = 5 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\subsubsection{Métricas de evaluación}
+
+\paragraph{Exactitud (\textit{accuracy}).} Proporción de clasificaciones correctas sobre el total.
+\[
+\text{Accuracy}=\frac{VP+VN}{VP+FP+FN+VN}
+\]
+\begin{align*}
+\text{Escenario A: } & \frac{16+5}{16+5+21+5}=0{,}447\approx 44\,\% \\
+\text{Escenario B: } & \frac{12+5}{12+9+21+5}=0{,}362\approx 36\,\%
+\end{align*}
+
+\paragraph{Precisión.} De lo que se marcó como vulnerable, qué proporción lo era realmente.
+\[
+\text{Precisión}=\frac{VP}{VP+FP}
+\]
+\begin{align*}
+\text{Escenario A: } & \frac{16}{16+5}=0{,}762\approx 76\,\% \\
+\text{Escenario B: } & \frac{12}{12+9}=0{,}571\approx 57\,\%
+\end{align*}
+
+\paragraph{Sensibilidad (\textit{recall}).} De las vulnerabilidades reales, qué proporción se detectó.
+\[
+\text{Recall}=\frac{VP}{VP+FN}
+\]
+\begin{align*}
+\text{Escenario A: } & \frac{16}{16+21}=0{,}432\approx 43\,\% \\
+\text{Escenario B: } & \frac{12}{12+21}=0{,}364\approx 36\,\%
+\end{align*}
+
+\paragraph{Puntaje F1.} Media armónica entre precisión y sensibilidad.
+\[
+F_1=2\times\frac{\text{Precisión}\times\text{Recall}}{\text{Precisión}+\text{Recall}}
+\]
+\begin{align*}
+\text{Escenario A: } & 2\times\frac{0{,}762\times 0{,}432}{0{,}762+0{,}432}=0{,}55\approx 55\,\% \\
+\text{Escenario B: } & 2\times\frac{0{,}571\times 0{,}364}{0{,}571+0{,}364}=0{,}44\approx 44\,\%
+\end{align*}
+
+\subsection{Comparativa con Bandit}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & \enc{Vulnerable} & \enc{No vulnerable} \\
+\midrule
+\enc{Marcado} & VP = 17 & FP = 4 \\
+\enc{No marcado} & FN = 14 & VN = n/d \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{align*}
+\text{Precisión} &= \frac{17}{17+4}=0{,}81\approx 81\,\% \\
+\text{Recall} &= \frac{17}{17+14}=0{,}548\approx 55\,\% \\
+F_1 &= 2\times\frac{0{,}81\times 0{,}548}{0{,}81+0{,}548}=0{,}65\approx 65\,\%
+\end{align*}
+
+Bandit no define VN (n/d), por lo que no es posible calcular su \textit{accuracy}. Además, Bandit solo analiza código Python, mientras que la revisión manual cubrió también el \textit{frontend}; la comparación es por tanto indicativa y no estrictamente equivalente.
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\enc{Métrica} & \enc{Esc. A} & \enc{Esc. B} & \enc{Bandit} \\
+\midrule
+Precisión & 76\,\% & 57\,\% & 81\,\% \\
+Recall & 43\,\% & 36\,\% & 55\,\% \\
+F1 & 55\,\% & 44\,\% & 65\,\% \\
+Accuracy & 44\,\% & 36\,\% & n/d \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Justificación de los resultados}
+\begin{itemize}
+  \item \textbf{Bandit gana en precisión porque es determinista.} Detecta firmas de código inseguro sin interpretarlas, por lo que genera menos ruido, aunque solo ve lo que sus reglas conocen.
+  \item \textbf{El análisis manual con LLM gana en contexto.} Solo este enfoque detectó que \f{auth.py}:100 estaba parametrizado (descartado como SQLi) y que \f{errors.py} correspondía a A05 y no a A02, matices que una herramienta automática no aporta.
+  \item \textbf{Ningún enfoque es suficiente por sí solo.} Bandit encuentra errores de patrón; la revisión manual encuentra fallos de lógica de negocio (IDOR, ausencia de verificación de firma, enumeración de usuarios). La mejor estrategia es combinarlos: Bandit como filtro automático en CI/CD y revisión manual para lógica y autorización.
+  \item \textbf{Que el Escenario B sea peor que el A es un hallazgo útil.} Sin validación cruzada (el LLM como segunda opinión) aumentan los falsos positivos, lo que justifica el flujo de triaje empleado.
+  \item \textbf{Recall y F1 muestran el panorama completo.} Bandit obtiene el mejor F1 (65\,\%) frente a 55\,\% y 44\,\%, pero ninguna técnica supera el 55\,\% de recall. Esto respalda el uso de herramientas complementarias, como Semgrep con reglas de \textit{taint} o un DAST.
+\end{itemize}
+
+\subsection{Conclusiones}
+Bandit obtuvo la mayor precisión (81\,\%), seguido del Escenario A (76\,\%) y el Escenario B (57\,\%), lo que indica que la herramienta automática genera menos falsos positivos al basarse en reglas deterministas sobre patrones conocidos. Sin embargo, la exactitud de los escenarios manuales (44\,\% y 36\,\%) y su recall (43\,\% y 36\,\%) evidencian que el análisis línea a línea omitió 21 vulnerabilidades, en su mayoría críticas y dependientes del flujo de datos entre archivos (deserialización, inyección de comandos, JWT sin verificación de firma).
+
+Bandit tampoco las cubre por completo (recall de 55\,\%), pues no detecta fallos de lógica ni de control de acceso. Se concluye que ambos enfoques son complementarios.
+
+% ---------------------------- SEMGREP --------------------------------
+\section{Análisis estático con Semgrep}\label{sec:semgrep}
+
+La revisión descrita en la sección~\ref{sec:sast} se complementó con \textbf{Semgrep}, un analizador estático basado en reglas que, a diferencia de Bandit, cubre tanto el \textit{backend} (Python/Flask) como el \textit{frontend} (TypeScript/Angular) y admite reglas propias. Esa extensibilidad resultó clave para expresar un control que las firmas genéricas no contemplan: el control de acceso a nivel de objeto (OWASP A01:2025).
+
+\subsection{Metodología y reproducibilidad}
+
+Se trabajó con Semgrep 1.180.0 (motor OSS) sobre el árbol \f{app-vulnerable}, desde la raíz del repositorio y sin telemetría. Todo el flujo se automatizó en \f{seguridad/scripts/reproducir\_analisis.sh}, que ejecuta dos escaneos y regenera los reportes:
+
+\begin{enumerate}
+  \item \textbf{Escaneo con packs estándar:} \f{p/owasp-top-ten}, \f{p/python}, \f{p/javascript} y \f{p/typescript}.
+  \item \textbf{Escaneo con la regla propia} \f{reglas-sqli-idor.yaml}, que reúne la regla previa de construcción manual de SQL y la nueva regla de control de acceso roto.
+  \item \textbf{Triage} de cada hallazgo y generación del informe (\f{informe\_hallazgos.txt|csv}) y del informe final.
+\end{enumerate}
+
+El comando base fue:
+
+\begin{quote}\small\ttfamily
+SEMGREP\_CORES=1 semgrep scan --metrics=off --jobs 1 --json \textbackslash\\
+\hspace*{1em}--config=p/owasp-top-ten --config=p/python \textbackslash\\
+\hspace*{1em}--config=p/javascript --config=p/typescript app-vulnerable
+\end{quote}
+
+La variable \f{SEMGREP\_CORES=1} es una mitigación de un fallo conocido de \f{semgrep-core} en este equipo (\f{io\_uring\_queue\_init}/«Cannot allocate memory»); no afecta al resultado, solo al paralelismo. El escaneo es determinista para el mismo árbol, versión y conjunto de reglas.
+
+\subsection{Hallazgos del escaneo estándar}
+
+El árbol contiene una copia anidada (\f{app-vulnerable/app-vulnerable}), por lo que las cifras brutas se duplican; tras normalizar rutas quedan \textbf{27 hallazgos únicos} (54 brutos) en \textbf{13 archivos}: 12 de severidad \f{ERROR} y 15 \f{WARNING}. Por categoría OWASP~2025, la distribución de los 27 hallazgos únicos es:
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\enc{Categoría OWASP 2025} & \enc{Hallazgos únicos} \\
+\midrule
+A05:2025 --- Injection & 14 \\
+A04:2025 --- Cryptographic Failures & 6 \\
+A01:2025 --- Broken Access Control & 3 \\
+A07:2025 --- Authentication Failures & 2 \\
+A08:2025 --- Software or Data Integrity Failures & 1 \\
+A09:2025 --- Security Logging \& Alerting Failures & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+El escaneo estándar detectó, entre otros, inyección SQL y de comandos, XSS, uso de MD5 para contraseñas, JWT sin verificación de firma, deserialización YAML y validación de certificado deshabilitada. Coinciden en gran medida con los hallazgos manuales de la sección~\ref{sec:sast}, con la salvedad de que aquí también se cubre el \textit{frontend} (\f{safe-html.pipe.ts}).
+
+\subsection{Regla propia para A01:2025 (control de acceso roto)}
+
+A01:2025 (\textit{Broken Access Control}) describe el caso en que un usuario autenticado accede a recursos que no le pertenecen. En esta aplicación el patrón es claro: un \textit{handler} decorado solo con \f{@require\_auth} recibe un identificador del cliente (\f{ticket\_id}, \f{user\_id}) y lo usa como clave en una consulta, sin comprobar el propietario (\f{owner\_id}) ni el rol (IDOR/BOLA). Los packs estándar no lo ven porque no modelan la relación entre la decoración, el parámetro de ruta y la consulta.
+
+La regla añadida expresa exactamente esa condición:
+
+\begin{quote}\small\ttfamily
+pattern-inside: @require\_auth def \$FUNC(...): ...\\
+pattern-either:\\
+\hspace*{1em}query(\$SQL, (\$ID,), ...)\\
+\hspace*{1em}ejecutar(\$SQL, (\$ID,), ...)\\
+metavariable-regex: \$ID \^{}(ticket\_id|user\_id|adjunto\_id|resource\_id)\$\\
+pattern-not-inside: @require\_rol(...) def \$FUNC(...): ...
+\end{quote}
+
+Es decir: un acceso por identificador de cliente, dentro de una función solo autenticada y sin comprobación de rol. El escaneo devolvió \textbf{4 hallazgos} (8 brutos por el árbol duplicado), todos \f{WARNING}, con metadatos \f{CWE-639} y \f{A01:2025}:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\enc{Ubicación} & \enc{Recurso expuesto} \\
+\midrule
+\f{api/users.py:41} & Perfil de cualquier usuario por \f{user\_id} \\
+\f{api/tickets.py:54} & Ticket de cualquier usuario por \f{ticket\_id} \\
+\f{api/tickets.py:58} & Comentarios de cualquier ticket \\
+\f{api/files.py:94} & Adjuntos de cualquier ticket \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Los cuatro son accesibles con cualquier sesión válida: basta cambiar el identificador. La regla delimita además los casos con \f{@require\_rol}, de modo que no marca los \textit{endpoints} administrativos que ya exigen rol.
+
+\subsection{Matriz de confusión}
+
+La evaluación sigue el enfoque de la sección~\ref{sec:sast}: se contrasta el resultado automático contra la revisión manual (referencia). Para no contar dos veces una misma debilidad reportada por reglas solapadas, los verdaderos positivos se cuentan por debilidad confirmada y no por alerta. La lista de referencia comprende \textbf{34 debilidades}: 17 que el estándar reporta y 17 que no.
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & \enc{Vulnerable} & \enc{No vulnerable} \\
+\midrule
+\enc{Reportado} & VP = 24 & FP = 3 \\
+\enc{No reportado} & FN = 17 & VN = n/d \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Los 3 falsos positivos son: la consulta de \f{tickets.py:35} (columnas de lista fija y límites enteros, por lo que la concatenación es inocua) y los dos usos de MD5 en \f{cache\_service.py:18} y \f{:50}, que calculan una clave de caché y un \textit{checksum}, no protegen una contraseña. Los 17 falsos negativos incluyen la inyección SQL por \textit{f-string} (\f{search\_service.py}, \f{utils/auditoria.py}), el \textit{path traversal} y el \textit{Zip Slip} (\f{files.py}, \f{import\_service.py}), la deserialización con \f{pickle}, la suplantación por \f{X-User-Id}, la asignación masiva de rol y el control de acceso a nivel de objeto (los 4 que sí recupera la regla propia).
+
+Conviene señalar que el triage automático del repositorio marca los 62 hallazgos brutos como verdaderos positivos; la validación manual descrita aquí es la que corrige esa estimación optimista e identifica los 3 falsos positivos.
+
+\subsection{Métricas}
+
+Con la matriz anterior:
+
+\begin{align*}
+\text{Precisión} &= \frac{24}{24+3}=0{,}889\approx 89\,\% \\
+\text{Recall} &= \frac{17}{17+17}=0{,}500\approx 50\,\% \\
+F_1 &= 2\times\frac{0{,}889\times 0{,}500}{0{,}889+0{,}500}=0{,}64\approx 64\,\%
+\end{align*}
+
+No se calcula \textit{accuracy} porque no se enumeran los verdaderos negativos (VN = n/d), igual que en la comparativa con Bandit. Al incorporar la regla propia de A01 se recuperan 4 de los 17 falsos negativos, con lo que el conjunto combinado (packs + regla) alcanza:
+
+\begin{align*}
+\text{Precisión} &= \frac{28}{28+3}=0{,}903\approx 90\,\% \\
+\text{Recall} &= \frac{21}{21+13}=0{,}618\approx 62\,\% \\
+F_1 &= 2\times\frac{0{,}903\times 0{,}618}{0{,}903+0{,}618}=0{,}73\approx 73\,\%
+\end{align*}
+
+\subsection{Comparativa con Bandit}
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\enc{Métrica} & \enc{Semgrep packs} & \enc{Semgrep + regla A01} & \enc{Bandit} \\
+\midrule
+Precisión & 89\,\% & 90\,\% & 81\,\% \\
+Recall & 50\,\% & 62\,\% & 55\,\% \\
+F1 & 64\,\% & 73\,\% & 65\,\% \\
+Accuracy & n/d & n/d & n/d \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Las cifras de Bandit provienen de la sección~\ref{sec:sast} y corresponden a un subconjunto de Python, por lo que la comparación es indicativa. Semgrep logra mejor precisión y, sobre todo, al añadir la regla propia supera a Bandit tanto en recall como en F1.
+
+\subsection{Conclusiones}
+
+El escaneo estándar de Semgrep aporta una precisión alta (89\,\%) porque sus reglas son deterministas, pero su recall se queda en el 50\,\%: no modela flujos entre archivos ni lógica de autorización. La regla propia de A01:2025 demuestra el valor de la extensibilidad: recupera cuatro casos de control de acceso a nivel de objeto con cero falsos positivos y eleva el F1 del conjunto al 73\,\%.
+
+Al igual que en la comparativa con Bandit, ningún enfoque basta por sí solo. La combinación —packs estándar en CI/CD como filtro automático, reglas propias para los patrones de negocio recurrentes y revisión manual para la lógica y la autorización— es la estrategia que mejor cubre A01:2025 y el resto del Top~10.
+
+\subsection{Abreviación de los comandos}
+
+El análisis se repite con frecuencia (dos escaneos y la regeneración de los reportes), y escribir cada invocación completa propicia errores de transcripción y resultados inconsistentes. Antes de resumirlos, cada paso se escribía completo en la terminal. El escaneo estándar era:
+
+\begin{quote}\small\ttfamily
+SEMGREP\_CORES=1 semgrep scan --metrics=off --jobs 1 --quiet \textbackslash\\
+\hspace*{1em}--output /home/jacobo/Documentos/SAST/seguridad/semgrep/resultados/resultados\_sast.json \textbackslash\\
+\hspace*{1em}--json --config=p/owasp-top-ten --config=p/python \textbackslash\\
+\hspace*{1em}--config=p/javascript --config=p/typescript \textbackslash\\
+\hspace*{1em}/home/jacobo/Documentos/SAST/app-vulnerable
+\end{quote}
+
+y el escaneo con la regla propia, análogo salvo en la salida y la configuración:
+
+\begin{quote}\small\ttfamily
+SEMGREP\_CORES=1 semgrep scan --metrics=off --jobs 1 --quiet \textbackslash\\
+\hspace*{1em}--output /home/jacobo/Documentos/SAST/seguridad/semgrep/resultados/resultados\_reglas\_custom.json \textbackslash\\
+\hspace*{1em}--json --config /home/jacobo/Documentos/SAST/seguridad/semgrep/reglas/reglas-sqli-idor.yaml \textbackslash\\
+\hspace*{1em}/home/jacobo/Documentos/SAST/app-vulnerable
+\end{quote}
+
+A estas invocaciones se suman las tres llamadas a \f{python3} que generan los reportes, cada una con su ruta completa. Para evitarlo, los comandos se resumieron en nombres cortos mediante funciones del intérprete de órdenes: una sola palabra reproduce cada paso y los parámetros quedan definidos en un único punto.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\enc{Abreviatura} & \enc{Tarea que resume} \\
+\midrule
+\f{sast} & Pipeline completo: escaneo estándar, escaneo con regla propia y regeneración de reportes. \\
+\f{sast-std} & Escaneo con los packs \f{p/owasp-top-ten}, \f{p/python}, \f{p/javascript} y \f{p/typescript}. \\
+\f{sast-custom} & Escaneo con la regla propia \f{reglas-sqli-idor.yaml}. \\
+\f{sast-reportes} & Generación del triage, el informe de hallazgos y el informe final. \\
+\f{sast-resumen} & Conteo rápido de los resultados obtenidos. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+El objetivo no es ocultar la herramienta, sino hacer el proceso repetible: cualquier persona ejecuta el análisis con el mismo comando, obtiene los mismos archivos de salida y, ante un cambio de ruta o de parámetro, lo corrige en un solo punto. El mismo criterio sigue \f{reproducir\_analisis.sh}, que agrupa todos los pasos del análisis estático para reproducirlo desde cero.
+
+% ---------------------------- IA -------------------------------------
+\section{Uso de inteligencia artificial}
+
+Se emplearon modelos de IA como apoyo en tres puntos del trabajo, siempre con revisión y decisión final del autor:
+\begin{itemize}
+  \item \textbf{Infraestructura:} identificación y creación de los archivos faltantes del \textit{frontend} (\f{angular.json} y \f{tsconfig.app.json}) y apoyo en la generación de la configuración Docker.
+  \item \textbf{Análisis estático:} precisión de clases y líneas con incidencias a partir del sondeo manual inicial.
+  \item \textbf{Validación:} uso del LLM como segunda opinión para emitir veredictos y reducir falsos positivos, contrastados después con los resultados de Bandit y de Semgrep.
+\end{itemize}
+
+\end{document}
