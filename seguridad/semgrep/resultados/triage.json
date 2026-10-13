@@ -1,0 +1,1064 @@
+{
+  "triage": [
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py:51#python.django.security.injection.sql.sql-injection-using-db-cursor-execute.sql-injection-db-cursor-execute",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py",
+      "line": 51,
+      "check_id": "python.django.security.injection.sql.sql-injection-using-db-cursor-execute.sql-injection-db-cursor-execute",
+      "message": "User-controlled data from a request is passed to 'execute()'. This could lead to a SQL injection and therefore protected information could be leaked. Instead, use django's QuerySets, which are built with query parameterization and therefore not vulnerable to sql injection. For example, you could use `Entry.objects.filter(date=2006)`.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py:52#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py",
+      "line": 52,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py:67#python.flask.security.injection.subprocess-injection.subprocess-injection",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py",
+      "line": 67,
+      "check_id": "python.flask.security.injection.subprocess-injection.subprocess-injection",
+      "message": "Detected user input entering a `subprocess` call unsafely. This could result in a command injection vulnerability. An attacker could use this vulnerability to execute arbitrary commands on the host, which allows them to download malware, scan sensitive data, or run any command they wish on the server. Do not let users choose the command to run. In general, prefer to use Python API versions of system commands. If you must use subprocess, use a dictionary to allowlist a set of commands.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py:68#python.lang.security.dangerous-subprocess-use.dangerous-subprocess-use",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py",
+      "line": 68,
+      "check_id": "python.lang.security.dangerous-subprocess-use.dangerous-subprocess-use",
+      "message": "Detected subprocess function 'check_output' with user controlled data. A malicious actor could leverage this to perform command injection. You may consider using 'shlex.escape()'.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py:68#python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/admin.py",
+      "line": 68,
+      "check_id": "python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "message": "Found 'subprocess' function 'check_output' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/auth.py:30#python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/auth.py",
+      "line": 30,
+      "check_id": "python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+      "message": "Detected a python logger call with a potential hardcoded secret \"Intento de login usuario=%s password=%s ip=%s\" being logged. This may lead to secret credentials being exposed. Make sure that the logger is not logging  sensitive information.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-532: Insertion of Sensitive Information into Log File"
+      ],
+      "owasp": [
+        "A09:2021 - Security Logging and Monitoring Failures",
+        "A09:2025 - Security Logging & Alerting Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Alta"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/reports.py:35#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/reports.py",
+      "line": 35,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py:35#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py",
+      "line": 35,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py:105#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py",
+      "line": 105,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py:142#python.flask.security.injection.raw-html-concat.raw-html-format",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py",
+      "line": 142,
+      "check_id": "python.flask.security.injection.raw-html-concat.raw-html-format",
+      "message": "Detected user input flowing into a manually constructed HTML string. You may be accidentally bypassing secure methods of rendering HTML by manually constructing HTML and this could create a cross-site scripting vulnerability, which could let attackers steal sensitive user data. To be sure this is safe, check that the HTML is rendered safely. Otherwise, use templates (`flask.render_template`) which will safely render HTML instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py:187#python.django.security.injection.raw-html-format.raw-html-format",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py",
+      "line": 187,
+      "check_id": "python.django.security.injection.raw-html-format.raw-html-format",
+      "message": "Detected user input flowing into a manually constructed HTML string. You may be accidentally bypassing secure methods of rendering HTML by manually constructing HTML and this could create a cross-site scripting vulnerability, which could let attackers steal sensitive user data. To be sure this is safe, check that the HTML is rendered safely. Otherwise, use templates (`django.shortcuts.render`) which will safely render HTML instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py:187#python.flask.security.injection.raw-html-concat.raw-html-format",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py",
+      "line": 187,
+      "check_id": "python.flask.security.injection.raw-html-concat.raw-html-format",
+      "message": "Detected user input flowing into a manually constructed HTML string. You may be accidentally bypassing secure methods of rendering HTML by manually constructing HTML and this could create a cross-site scripting vulnerability, which could let attackers steal sensitive user data. To be sure this is safe, check that the HTML is rendered safely. Otherwise, use templates (`flask.render_template`) which will safely render HTML instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/users.py:30#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/users.py",
+      "line": 30,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/users.py:102#python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/users.py",
+      "line": 102,
+      "check_id": "python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "message": "These permissions `0o777` are widely permissive and grant access to more people than may be necessary. A good default is `0o644` which gives read and write access to yourself and read access to everyone else.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-276: Incorrect Default Permissions"
+      ],
+      "owasp": [
+        "A01:2021 - Broken Access Control",
+        "A01:2025 - Broken Access Control"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/app.py:96#python.flask.security.audit.app-run-param-config.avoid_app_run_with_bad_host",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/app.py",
+      "line": 96,
+      "check_id": "python.flask.security.audit.app-run-param-config.avoid_app_run_with_bad_host",
+      "message": "Running flask app with host 0.0.0.0 could expose the server publicly.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-668: Exposure of Resource to Wrong Sphere"
+      ],
+      "owasp": [
+        "A01:2021 - Broken Access Control",
+        "A01:2025 - Broken Access Control"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/logging_conf.py:20#python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/logging_conf.py",
+      "line": 20,
+      "check_id": "python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "message": "These permissions `0o666` are widely permissive and grant access to more people than may be necessary. A good default is `0o644` which gives read and write access to yourself and read access to everyone else.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-276: Incorrect Default Permissions"
+      ],
+      "owasp": [
+        "A01:2021 - Broken Access Control",
+        "A01:2025 - Broken Access Control"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py:22#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py",
+      "line": 22,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py:22#python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py",
+      "line": 22,
+      "check_id": "python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "message": "It looks like MD5 is used as a password hash. MD5 is not considered a secure password hash because it can be cracked by an attacker in a short amount of time. Use a suitable password hashing function such as scrypt. You can use `hashlib.scrypt`.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Alta"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py:27#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py",
+      "line": 27,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py:27#python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py",
+      "line": 27,
+      "check_id": "python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "message": "It looks like MD5 is used as a password hash. MD5 is not considered a secure password hash because it can be cracked by an attacker in a short amount of time. Use a suitable password hashing function such as scrypt. You can use `hashlib.scrypt`.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Alta"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py:77#python.jwt.security.unverified-jwt-decode.unverified-jwt-decode",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/core/security.py",
+      "line": 77,
+      "check_id": "python.jwt.security.unverified-jwt-decode.unverified-jwt-decode",
+      "message": "Detected JWT token decoded with 'verify=False'. This bypasses any integrity checks for the token which means the token could be tampered with by malicious actors. Ensure that the JWT token is verified.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-287: Improper Authentication"
+      ],
+      "owasp": [
+        "A02:2017 - Broken Authentication",
+        "A07:2021 - Identification and Authentication Failures",
+        "A07:2025 - Authentication Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/cache_service.py:18#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/cache_service.py",
+      "line": 18,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/cache_service.py:50#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/cache_service.py",
+      "line": 50,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/export_service.py:48#python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/export_service.py",
+      "line": 48,
+      "check_id": "python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "message": "Found 'subprocess' function 'Popen' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/import_service.py:36#python.lang.security.deserialization.avoid-pyyaml-load.avoid-pyyaml-load",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/import_service.py",
+      "line": 36,
+      "check_id": "python.lang.security.deserialization.avoid-pyyaml-load.avoid-pyyaml-load",
+      "message": "Detected a possible YAML deserialization vulnerability. `yaml.unsafe_load`, `yaml.Loader`, `yaml.CLoader`, and `yaml.UnsafeLoader` are all known to be unsafe methods of deserializing YAML. An attacker with control over the YAML input could create special YAML input that allows the attacker to run arbitrary Python code. This would allow the attacker to steal files, download and install malware, or otherwise take over the machine. Use `yaml.safe_load` or `yaml.SafeLoader` instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-502: Deserialization of Untrusted Data"
+      ],
+      "owasp": [
+        "A08:2017 - Insecure Deserialization",
+        "A08:2021 - Software and Data Integrity Failures",
+        "A08:2025 - Software or Data Integrity Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/notification_service.py:22#python.lang.security.unverified-ssl-context.unverified-ssl-context",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/services/notification_service.py",
+      "line": 22,
+      "check_id": "python.lang.security.unverified-ssl-context.unverified-ssl-context",
+      "message": "Unverified SSL context detected. This will permit insecure connections without verifying SSL certificates. Use 'ssl.create_default_context' instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-295: Improper Certificate Validation"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A07:2021 - Identification and Authentication Failures",
+        "A07:2025 - Authentication Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/frontend/src/app/shared/safe-html.pipe.ts:14#typescript.angular.security.audit.angular-domsanitizer.angular-bypasssecuritytrust",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/frontend/src/app/shared/safe-html.pipe.ts",
+      "line": 14,
+      "check_id": "typescript.angular.security.audit.angular-domsanitizer.angular-bypasssecuritytrust",
+      "message": "Detected the use of `bypassSecurityTrustHtml`. This can introduce a Cross-Site-Scripting (XSS) vulnerability if this comes from user-provided input. If you have to use `bypassSecurityTrustHtml`, ensure it does not come from user-input or use the appropriate prevention mechanism e.g. input validation or sanitization depending on the context.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py:51#python.django.security.injection.sql.sql-injection-using-db-cursor-execute.sql-injection-db-cursor-execute",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py",
+      "line": 51,
+      "check_id": "python.django.security.injection.sql.sql-injection-using-db-cursor-execute.sql-injection-db-cursor-execute",
+      "message": "User-controlled data from a request is passed to 'execute()'. This could lead to a SQL injection and therefore protected information could be leaked. Instead, use django's QuerySets, which are built with query parameterization and therefore not vulnerable to sql injection. For example, you could use `Entry.objects.filter(date=2006)`.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py:52#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py",
+      "line": 52,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py:67#python.flask.security.injection.subprocess-injection.subprocess-injection",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py",
+      "line": 67,
+      "check_id": "python.flask.security.injection.subprocess-injection.subprocess-injection",
+      "message": "Detected user input entering a `subprocess` call unsafely. This could result in a command injection vulnerability. An attacker could use this vulnerability to execute arbitrary commands on the host, which allows them to download malware, scan sensitive data, or run any command they wish on the server. Do not let users choose the command to run. In general, prefer to use Python API versions of system commands. If you must use subprocess, use a dictionary to allowlist a set of commands.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py:68#python.lang.security.dangerous-subprocess-use.dangerous-subprocess-use",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py",
+      "line": 68,
+      "check_id": "python.lang.security.dangerous-subprocess-use.dangerous-subprocess-use",
+      "message": "Detected subprocess function 'check_output' with user controlled data. A malicious actor could leverage this to perform command injection. You may consider using 'shlex.escape()'.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py:68#python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/admin.py",
+      "line": 68,
+      "check_id": "python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "message": "Found 'subprocess' function 'check_output' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/auth.py:30#python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/auth.py",
+      "line": 30,
+      "check_id": "python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure",
+      "message": "Detected a python logger call with a potential hardcoded secret \"Intento de login usuario=%s password=%s ip=%s\" being logged. This may lead to secret credentials being exposed. Make sure that the logger is not logging  sensitive information.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-532: Insertion of Sensitive Information into Log File"
+      ],
+      "owasp": [
+        "A09:2021 - Security Logging and Monitoring Failures",
+        "A09:2025 - Security Logging & Alerting Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Alta"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/reports.py:35#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/reports.py",
+      "line": 35,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py:35#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py",
+      "line": 35,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py:105#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py",
+      "line": 105,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py:142#python.flask.security.injection.raw-html-concat.raw-html-format",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py",
+      "line": 142,
+      "check_id": "python.flask.security.injection.raw-html-concat.raw-html-format",
+      "message": "Detected user input flowing into a manually constructed HTML string. You may be accidentally bypassing secure methods of rendering HTML by manually constructing HTML and this could create a cross-site scripting vulnerability, which could let attackers steal sensitive user data. To be sure this is safe, check that the HTML is rendered safely. Otherwise, use templates (`flask.render_template`) which will safely render HTML instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py:187#python.django.security.injection.raw-html-format.raw-html-format",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py",
+      "line": 187,
+      "check_id": "python.django.security.injection.raw-html-format.raw-html-format",
+      "message": "Detected user input flowing into a manually constructed HTML string. You may be accidentally bypassing secure methods of rendering HTML by manually constructing HTML and this could create a cross-site scripting vulnerability, which could let attackers steal sensitive user data. To be sure this is safe, check that the HTML is rendered safely. Otherwise, use templates (`django.shortcuts.render`) which will safely render HTML instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py:187#python.flask.security.injection.raw-html-concat.raw-html-format",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py",
+      "line": 187,
+      "check_id": "python.flask.security.injection.raw-html-concat.raw-html-format",
+      "message": "Detected user input flowing into a manually constructed HTML string. You may be accidentally bypassing secure methods of rendering HTML by manually constructing HTML and this could create a cross-site scripting vulnerability, which could let attackers steal sensitive user data. To be sure this is safe, check that the HTML is rendered safely. Otherwise, use templates (`flask.render_template`) which will safely render HTML instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/users.py:30#python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/users.py",
+      "line": 30,
+      "check_id": "python.flask.security.injection.tainted-sql-string.tainted-sql-string",
+      "message": "Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-704: Incorrect Type Conversion or Cast"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/users.py:102#python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/users.py",
+      "line": 102,
+      "check_id": "python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "message": "These permissions `0o777` are widely permissive and grant access to more people than may be necessary. A good default is `0o644` which gives read and write access to yourself and read access to everyone else.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-276: Incorrect Default Permissions"
+      ],
+      "owasp": [
+        "A01:2021 - Broken Access Control",
+        "A01:2025 - Broken Access Control"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/app.py:96#python.flask.security.audit.app-run-param-config.avoid_app_run_with_bad_host",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/app.py",
+      "line": 96,
+      "check_id": "python.flask.security.audit.app-run-param-config.avoid_app_run_with_bad_host",
+      "message": "Running flask app with host 0.0.0.0 could expose the server publicly.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-668: Exposure of Resource to Wrong Sphere"
+      ],
+      "owasp": [
+        "A01:2021 - Broken Access Control",
+        "A01:2025 - Broken Access Control"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/logging_conf.py:20#python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/logging_conf.py",
+      "line": 20,
+      "check_id": "python.lang.security.audit.insecure-file-permissions.insecure-file-permissions",
+      "message": "These permissions `0o666` are widely permissive and grant access to more people than may be necessary. A good default is `0o644` which gives read and write access to yourself and read access to everyone else.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-276: Incorrect Default Permissions"
+      ],
+      "owasp": [
+        "A01:2021 - Broken Access Control",
+        "A01:2025 - Broken Access Control"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py:22#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py",
+      "line": 22,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py:22#python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py",
+      "line": 22,
+      "check_id": "python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "message": "It looks like MD5 is used as a password hash. MD5 is not considered a secure password hash because it can be cracked by an attacker in a short amount of time. Use a suitable password hashing function such as scrypt. You can use `hashlib.scrypt`.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Alta"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py:27#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py",
+      "line": 27,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py:27#python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py",
+      "line": 27,
+      "check_id": "python.lang.security.audit.md5-used-as-password.md5-used-as-password",
+      "message": "It looks like MD5 is used as a password hash. MD5 is not considered a secure password hash because it can be cracked by an attacker in a short amount of time. Use a suitable password hashing function such as scrypt. You can use `hashlib.scrypt`.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Alta"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py:77#python.jwt.security.unverified-jwt-decode.unverified-jwt-decode",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/core/security.py",
+      "line": 77,
+      "check_id": "python.jwt.security.unverified-jwt-decode.unverified-jwt-decode",
+      "message": "Detected JWT token decoded with 'verify=False'. This bypasses any integrity checks for the token which means the token could be tampered with by malicious actors. Ensure that the JWT token is verified.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-287: Improper Authentication"
+      ],
+      "owasp": [
+        "A02:2017 - Broken Authentication",
+        "A07:2021 - Identification and Authentication Failures",
+        "A07:2025 - Authentication Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/cache_service.py:18#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/cache_service.py",
+      "line": 18,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/cache_service.py:50#python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/cache_service.py",
+      "line": 50,
+      "check_id": "python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5",
+      "message": "Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A02:2021 - Cryptographic Failures",
+        "A04:2025 - Cryptographic Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/export_service.py:48#python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/export_service.py",
+      "line": 48,
+      "check_id": "python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "message": "Found 'subprocess' function 'Popen' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      ],
+      "owasp": [
+        "A01:2017 - Injection",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Cr\u00edtica"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/import_service.py:36#python.lang.security.deserialization.avoid-pyyaml-load.avoid-pyyaml-load",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/import_service.py",
+      "line": 36,
+      "check_id": "python.lang.security.deserialization.avoid-pyyaml-load.avoid-pyyaml-load",
+      "message": "Detected a possible YAML deserialization vulnerability. `yaml.unsafe_load`, `yaml.Loader`, `yaml.CLoader`, and `yaml.UnsafeLoader` are all known to be unsafe methods of deserializing YAML. An attacker with control over the YAML input could create special YAML input that allows the attacker to run arbitrary Python code. This would allow the attacker to steal files, download and install malware, or otherwise take over the machine. Use `yaml.safe_load` or `yaml.SafeLoader` instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-502: Deserialization of Untrusted Data"
+      ],
+      "owasp": [
+        "A08:2017 - Insecure Deserialization",
+        "A08:2021 - Software and Data Integrity Failures",
+        "A08:2025 - Software or Data Integrity Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/notification_service.py:22#python.lang.security.unverified-ssl-context.unverified-ssl-context",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/services/notification_service.py",
+      "line": 22,
+      "check_id": "python.lang.security.unverified-ssl-context.unverified-ssl-context",
+      "message": "Unverified SSL context detected. This will permit insecure connections without verifying SSL certificates. Use 'ssl.create_default_context' instead.",
+      "severity_rule": "ERROR",
+      "cwe": [
+        "CWE-295: Improper Certificate Validation"
+      ],
+      "owasp": [
+        "A03:2017 - Sensitive Data Exposure",
+        "A07:2021 - Identification and Authentication Failures",
+        "A07:2025 - Authentication Failures"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/frontend/src/app/shared/safe-html.pipe.ts:14#typescript.angular.security.audit.angular-domsanitizer.angular-bypasssecuritytrust",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/frontend/src/app/shared/safe-html.pipe.ts",
+      "line": 14,
+      "check_id": "typescript.angular.security.audit.angular-domsanitizer.angular-bypasssecuritytrust",
+      "message": "Detected the use of `bypassSecurityTrustHtml`. This can introduce a Cross-Site-Scripting (XSS) vulnerability if this comes from user-provided input. If you have to use `bypassSecurityTrustHtml`, ensure it does not come from user-input or use the appropriate prevention mechanism e.g. input validation or sanitization depending on the context.",
+      "severity_rule": "WARNING",
+      "cwe": [
+        "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      ],
+      "owasp": [
+        "A07:2017 - Cross-Site Scripting (XSS)",
+        "A03:2021 - Injection",
+        "A05:2025 - Injection"
+      ],
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/files.py:94#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/files.py",
+      "line": 94,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador ticket_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py:54#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py",
+      "line": 54,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador ticket_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py:58#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/tickets.py",
+      "line": 58,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador ticket_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/users.py:41#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/app-vulnerable/backend/api/users.py",
+      "line": 41,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador user_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/files.py:94#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/files.py",
+      "line": 94,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador ticket_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py:54#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py",
+      "line": 54,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador ticket_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py:58#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/tickets.py",
+      "line": 58,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador ticket_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    },
+    {
+      "key": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/users.py:41#seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "path": "/home/jacobo/Documentos/SAST/app-vulnerable/backend/api/users.py",
+      "line": 41,
+      "check_id": "seguridad.semgrep.reglas.opc-python-broken-access-control-idor",
+      "message": "Posible Broken Access Control (A01:2025 - Broken Access Control): se opera sobre un recurso con el identificador user_id recibido del cliente sin comprobar que pertenezca al usuario autenticado (IDOR/BOLA). Validar la propiedad (owner_id) o el rol antes de acceder.",
+      "severity_rule": "WARNING",
+      "cwe": "CWE-639",
+      "owasp": "A01:2025 - Broken Access Control",
+      "estado": "TP",
+      "severidad_final": "Media"
+    }
+  ]
+}
